@@ -560,16 +560,48 @@ puts "\"".to_s
 br=1
 begin#c++,python:try 开始监测代码
   if 2==br
-    eval "ccc=1"
+    puts "retry success"
+  else
+    puts "a:#{a=ccc}"
   end
-  puts "a:#{a=ccc}"
-rescue =>a#c++:catch  python:except 接收异常。程序员可以在这里对异常作出分析和处理。这里可以填参数，参数会接收异常对象，参数前要写=>，
-  # 不填参数的话默认的异常对象是$!。$!是最后发生的异常（异常对象），$@是最后发生的异常的位置信息。class 异常的种类 ，message 异常信息，
-  # backtrace 异常发生的位置信息（$@ 与 $!.backtrace 是等价的）
-  puts "rescue:#{a}"
+rescue NameError=>a#c++:catch  python:except 接收异常。程序员可以在这里对异常作出分析和处理。这里可以填参数，参数会接收异常对象，参数前要写=>，
+  # 不填参数的话默认的异常对象是$!。=>前面写的要监测的异常类型，不写就是所有，填父类异常也会接收子类异常。还有特殊的默认，$!是最后发生的异常（异常对象）
+  # ，$@是最后发生的异常的位置信息。class 异常的种类 ，message 异常信息，backtrace 异常发生的位置信息（$@ 与 $!.backtrace 是等价的）。
+  puts "NameError:rescue:#{a}"
   # puts "rescue:#{$!}"
   br=2
-  retry
+  retry#从Begin开始再重新执行一次代码，注意！写不好可能会变成死循环！
 ensure#c++,python:finally  扫尾代码，出不出现异常这里的代码都会被执行。
   puts "ensure"
+end
+puts a=ccc rescue"error!!!"#可以做修饰符，表示，修饰语句出异常时，rescue的语句就会生效。像if，unless一样
+def testRescue#在方法中使用时，如果整个方法体都是异常处理范围的话，可以省略Begin
+  a=cc
+rescue
+  a=1
+ensure
+  puts "a:#{a}"
+end
+testRescue
+class TestRescue#在类中使用时，如果整个类体都是异常处理范围的话，可以省略Begin。我想写个异常出来测试一下的，但是半天没写出来好的例子，
+  def putsA
+    puts "@a:#{@@a}"
+  end
+  class << self
+    @@a=ccc
+    rescue
+      @@a=9
+      puts "TestRescue:rescue：#{$!.class}"
+    ensure
+  end
+end
+TestRescue.new.putsA
+begin#下方主动抛出异常
+  # raise#抛出 RuntimeError 异常
+  # raise "hahahahaha!"#抛出 RuntimeError 异常，并把字符串作为 message 设置给新生成的异常对象。
+  # raise NameError#抛出指定异常
+  # raise NameError,"Not NameError!!"#抛出指定异常，并把字符串作为 message 设置给新生成的异常对象。
+rescue
+  puts $!.message
+  puts $!.class
 end
